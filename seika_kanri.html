@@ -939,19 +939,33 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// スマホ判定
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+// WebView判定（LINEブラウザ・Facebookブラウザ等）
+function isWebView(){
+  const ua = navigator.userAgent;
+  return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/.test(ua);
+}
 
 window.signInWithGoogle = async function(){
-  document.getElementById('login-err').textContent='';
+  const errEl = document.getElementById('login-err');
+  errEl.textContent = '';
+
+  // WebView内の場合は外部ブラウザで開くよう誘導
+  if(isWebView()){
+    errEl.textContent = '※ このブラウザでは直接ログインできません。SafariやChromeで開いてください。';
+    return;
+  }
+
   try{
-    if(isMobile){
+    // Safari（iOS）はリダイレクト、それ以外はポップアップ
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if(isSafari){
       await signInWithRedirect(auth, provider);
     } else {
       await signInWithPopup(auth, provider);
     }
   } catch(e){
-    document.getElementById('login-err').textContent='ログインに失敗しました。もう一度お試しください。';
+    errEl.textContent = 'ログインに失敗しました。もう一度お試しください。';
+    console.error(e);
   }
 };
 
@@ -959,8 +973,10 @@ window.signOut = async function(){
   await fbSignOut(auth);
 };
 
-// リダイレクト後の結果を処理
-getRedirectResult(auth).catch(()=>{});
+// リダイレクト後の処理（Safari対応）
+getRedirectResult(auth).then(result=>{
+  if(result && result.user) console.log('リダイレクトログイン成功');
+}).catch(e=>console.error('redirect error', e));
 
 onAuthStateChanged(auth, user => {
   if(user){
