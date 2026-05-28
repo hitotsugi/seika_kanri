@@ -120,15 +120,18 @@ tr:hover td{background:#fafaf7}
 .login-sub{font-size:13px;color:var(--text3);margin-bottom:32px}
 /* ── responsive ── */
 @media(max-width:768px){
-  .topbar{padding:0 12px;gap:8px}
-  .logo{font-size:13px}
-  .logo svg{width:18px;height:18px}
+  .topbar{padding:0 10px;gap:6px;height:48px}
+  .logo span{display:none}
+  .sample-btn{display:none}
   .date-nav{position:static;transform:none;margin:0 auto}
-  .date-disp{min-width:100px;font-size:12px}
+  .date-disp{min-width:110px;font-size:12px}
+  .date-nav button{padding:4px 8px;font-size:11px}
   .user-name{display:none}
-  .tabs{padding:0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .user-avatar{width:24px;height:24px}
+  .btn-logout{font-size:10px;padding:2px 7px}
+  .tabs{padding:0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;top:48px}
   .tab{padding:10px 10px;font-size:12px;white-space:nowrap;flex-shrink:0}
-  .main{padding:12px;margin-top:96px}
+  .main{padding:12px;margin-top:92px}
   .sum-grid{grid-template-columns:repeat(2,1fr);gap:8px}
   .sum-card .val{font-size:16px}
   .agg-grid{grid-template-columns:repeat(2,1fr);gap:8px}
@@ -146,9 +149,6 @@ tr:hover td{background:#fafaf7}
 @media(max-width:480px){
   .sum-grid{grid-template-columns:1fr 1fr}
   .agg-grid{grid-template-columns:1fr}
-  .topbar{height:48px}
-  .tabs{top:48px}
-  .main{margin-top:92px}
 }
 .btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);cursor:pointer;font-size:14px;font-family:inherit;color:var(--text);font-weight:500}
 .btn-google:hover{background:var(--surface2)}
@@ -183,9 +183,9 @@ tr:hover td{background:#fafaf7}
   <div class="topbar">
     <div class="logo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2"/><path d="M12 2c0 0-4 4-4 10s4 10 4 10"/></svg>
-      青果仲卸 営業管理
+      <span>青果仲卸 営業管理</span>
     </div>
-    <button class="btn" onclick="reloadSample()" style="font-size:11px;padding:4px 10px;color:var(--text2)">🔄 サンプルデータ表示</button>
+    <button class="btn sample-btn" onclick="reloadSample()" style="font-size:11px;padding:4px 10px;color:var(--text2)">🔄 サンプルデータ表示</button>
     <div class="date-nav">
       <button onclick="changeDate(-1)">◀</button>
       <span class="date-disp" id="date-disp"></span>
