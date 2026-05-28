@@ -185,7 +185,7 @@ tr:hover td{background:#fafaf7}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2"/><path d="M12 2c0 0-4 4-4 10s4 10 4 10"/></svg>
       <span>青果仲卸 営業管理</span>
     </div>
-    <button class="btn sample-btn" onclick="reloadSample()" style="font-size:11px;padding:4px 10px;color:var(--text2)">🔄 サンプルデータ表示</button>
+    <button class="btn sample-btn" style="display:none" onclick="reloadSample()">🔄 サンプルデータ表示</button>
     <div class="date-nav">
       <button onclick="changeDate(-1)">◀</button>
       <span class="date-disp" id="date-disp"></span>
@@ -983,6 +983,7 @@ onAuthStateChanged(auth, user => {
     document.getElementById('user-name').textContent=user.displayName||user.email;
     document.getElementById('user-avatar').src=user.photoURL||'';
     document.getElementById('user-avatar').style.display=user.photoURL?'block':'none';
+    renderAll();
   } else {
     document.getElementById('login-screen').style.display='flex';
     document.getElementById('app-screen').style.display='none';
