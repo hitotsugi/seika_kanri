@@ -203,8 +203,10 @@ tr:hover td{background:#fafaf7}
     <div class="tab" onclick="switchTab('nyuka')">📦 入荷管理</div>
     <div class="tab" onclick="switchTab('hanbai')">🧾 販売管理</div>
     <div class="tab" onclick="switchTab('zaiko')">📋 在庫一覧</div>
-    <div class="tab" onclick="switchTab('master')">🏪 販売先マスタ</div>
     <div class="tab" onclick="switchTab('report')">📈 集計・出力</div>
+    <div class="tab" onclick="switchTab('nyuka-master')">🚛 入荷先マスタ</div>
+    <div class="tab" onclick="switchTab('master')">🏪 販売先マスタ</div>
+    <div class="tab" onclick="switchTab('hinmoku-master')">🥬 品目マスタ</div>
   </div>
 
   <div class="main">
@@ -281,6 +283,29 @@ tr:hover td{background:#fafaf7}
       <div class="master-list" id="master-list"></div>
     </div>
 
+    <!-- 入荷先マスタ -->
+    <div class="tab-content" id="tab-nyuka-master">
+      <div class="sec-head">
+        <span class="sec-title">入荷先マスタ</span>
+        <button class="btn btn-primary" onclick="openNyukaMasterModal()">＋ 入荷先を追加</button>
+      </div>
+      <div class="master-list" id="nyuka-master-list"></div>
+    </div>
+
+    <!-- 品目マスタ -->
+    <div class="tab-content" id="tab-hinmoku-master">
+      <div class="sec-head">
+        <span class="sec-title">品目マスタ</span>
+        <button class="btn btn-primary" onclick="openHinmokuMasterModal()">＋ 品目を追加</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>品目名</th><th>品種・分類</th><th>標準単位</th><th>標準等級</th><th>備考</th><th></th></tr></thead>
+          <tbody id="hinmoku-master-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- 集計・出力 -->
     <div class="tab-content" id="tab-report">
       <div class="period-tabs">
@@ -336,8 +361,22 @@ tr:hover td{background:#fafaf7}
   <div class="modal" onclick="event.stopPropagation()">
     <h3>📦 入荷登録</h3>
     <div class="form-row">
-      <div class="fg"><label>品目名</label><input type="text" id="n-hinmoku" placeholder="例：キャベツ"></div>
+      <div class="fg">
+        <label>入荷先（マスタから選択）</label>
+        <select id="n-nyuka-master" onchange="onNyukaMasterSelect()">
+          <option value="">-- 選択またはフリー入力 --</option>
+        </select>
+      </div>
       <div class="fg"><label>産地</label><input type="text" id="n-sanchi" placeholder="例：群馬県"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg">
+        <label>品目（マスタから選択）</label>
+        <select id="n-hinmoku-master" onchange="onHinmokuMasterSelect()">
+          <option value="">-- 選択またはフリー入力 --</option>
+        </select>
+      </div>
+      <div class="fg"><label>品目名（フリー入力可）</label><input type="text" id="n-hinmoku" placeholder="例：キャベツ"></div>
     </div>
     <div class="form-row">
       <div class="fg"><label>等級</label><select id="n-toukyu"><option>秀</option><option>優</option><option>良</option><option>並</option><option>規格外</option></select></div>
@@ -416,6 +455,56 @@ tr:hover td{background:#fafaf7}
   </div>
 </div>
 
+<!-- 入荷先マスタ登録モーダル -->
+<div class="overlay" id="nyuka-master-modal" onclick="closeOverlay('nyuka-master-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>🚛 入荷先登録</h3>
+    <input type="hidden" id="nm-id">
+    <div class="form-row">
+      <div class="fg"><label>入荷先名（業者名）</label><input type="text" id="nm-name" placeholder="例：千葉青果株式会社"></div>
+      <div class="fg"><label>産地・地域</label><input type="text" id="nm-sanchi" placeholder="例：千葉県"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>担当者名</label><input type="text" id="nm-tanto" placeholder="例：山田 太郎"></div>
+      <div class="fg"><label>電話番号</label><input type="text" id="nm-tel" placeholder="例：043-XXX-XXXX"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>主な取扱品目</label><input type="text" id="nm-hinmoku" placeholder="例：にんじん、大根"></div>
+      <div class="fg"><label>取引区分</label><select id="nm-type"><option>せり</option><option>相対</option><option>産地直送</option><option>その他</option></select></div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>備考</label><textarea id="nm-note" rows="2" placeholder="例：火木土入荷、有機栽培専門"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeOverlay('nyuka-master-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveNyukaMaster()">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 品目マスタ登録モーダル -->
+<div class="overlay" id="hinmoku-master-modal" onclick="closeOverlay('hinmoku-master-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>🥬 品目登録</h3>
+    <input type="hidden" id="hm-id">
+    <div class="form-row">
+      <div class="fg"><label>品目名</label><input type="text" id="hm-name" placeholder="例：にんじん"></div>
+      <div class="fg"><label>品種・分類</label><input type="text" id="hm-category" placeholder="例：根菜類"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>標準単位</label><select id="hm-tani"><option>ケース</option><option>箱</option><option>袋</option><option>本</option><option>個</option><option>kg</option></select></div>
+      <div class="fg"><label>標準等級</label><select id="hm-toukyu"><option>秀</option><option>優</option><option>良</option><option>並</option></select></div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>備考</label><textarea id="hm-note" rows="2" placeholder="例：冬場は徳島産が多い、旬は11〜3月"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeOverlay('hinmoku-master-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveHinmokuMaster()">登録</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const S={
   currentDate:new Date(),
@@ -423,6 +512,8 @@ const S={
   nyuka:{},
   hanbai:{},
   masters:[],
+  nyukaMasters:[],
+  hinmokuMasters:[],
   activeSellRow:null,
   reportMode:'weekly'
 };
@@ -562,9 +653,29 @@ function loadSampleData(){
     {id:3004,name:'ファミレスチェーンA',gyotai:'外食チェーン',tanto:'山田 花子',tel:'03-777-8888',note:'週1まとめ発注'},
     {id:3005,name:'給食センター さいたま',gyotai:'業務用',tanto:'中村 三郎',tel:'048-999-0000',note:'規格品のみ・月曜締め'},
   ];
+  S.nyukaMasters=[
+    {id:4001,name:'千葉青果株式会社',sanchi:'千葉県',tanto:'高橋 一郎',tel:'043-211-3333',hinmoku:'にんじん・大根・ほうれん草',type:'せり',note:'大田市場経由、月〜土入荷'},
+    {id:4002,name:'徳島産直センター',sanchi:'徳島県',tanto:'吉田 浩二',tel:'088-621-4444',hinmoku:'にんじん・ねぎ',type:'相対',note:'産地直送、水・土着荷'},
+    {id:4003,name:'北海道農協連合会',sanchi:'北海道',tanto:'佐々木 誠',tel:'011-231-5555',hinmoku:'にんじん・じゃがいも',type:'産地直送',note:'冬季は輸送遅延注意'},
+    {id:4004,name:'埼玉中央青果市場',sanchi:'埼玉県',tanto:'渡辺 健太',tel:'048-521-6666',hinmoku:'ねぎ・キャベツ・ほうれん草',type:'せり',note:'地場野菜中心、鮮度良好'},
+    {id:4005,name:'神奈川青果卸売',sanchi:'神奈川県',tanto:'中島 隆',tel:'045-311-7777',hinmoku:'大根・キャベツ',type:'相対',note:'月火木金入荷'},
+    {id:4006,name:'群馬有機農業組合',sanchi:'群馬県',tanto:'小林 恵子',tel:'027-221-8888',hinmoku:'ほうれん草・ブロッコリー',type:'産地直送',note:'有機栽培専門、前日予約制'},
+    {id:4007,name:'茨城青果流通センター',sanchi:'茨城県',tanto:'加藤 誠一',tel:'029-221-9999',hinmoku:'ねぎ・白菜・大根',type:'せり',note:'量販対応可、大ロット歓迎'},
+    {id:4008,name:'青森農業協同組合',sanchi:'青森県',tanto:'工藤 義雄',tel:'017-722-1111',hinmoku:'大根・りんご・にんにく',type:'産地直送',note:'秋冬中心、夏場は品薄'},
+  ];
+  S.hinmokuMasters=[
+    {id:7001,name:'にんじん',category:'根菜類',tani:'ケース',toukyu:'秀',note:'旬は11〜3月。千葉・徳島・北海道産が主力。'},
+    {id:7002,name:'ねぎ',category:'葉茎菜類',tani:'ケース',toukyu:'秀',note:'通年出荷。埼玉・茨城産が多い。冬場は甘みが増す。'},
+    {id:7003,name:'大根',category:'根菜類',tani:'ケース',toukyu:'秀',note:'通年。青森・神奈川産。夏大根は辛みが強い。'},
+    {id:7004,name:'ほうれん草',category:'葉茎菜類',tani:'ケース',toukyu:'秀',note:'旬は11〜3月。群馬・栃木産中心。鮮度劣化が早い。'},
+    {id:7005,name:'キャベツ',category:'葉菜類',tani:'ケース',toukyu:'秀',note:'通年。愛知・群馬産。春キャベツと冬キャベツで品質差あり。'},
+    {id:7006,name:'白菜',category:'葉菜類',tani:'ケース',toukyu:'秀',note:'旬は11〜2月。茨城・長野産。大玉と小玉で単価差あり。'},
+    {id:7007,name:'じゃがいも',category:'根菜類',tani:'袋',toukyu:'優',note:'北海道産メイン。男爵・メークインが主流。'},
+    {id:7008,name:'たまねぎ',category:'根菜類',tani:'袋',toukyu:'優',note:'北海道・佐賀産。通年流通。L・M・Sでサイズ価格差あり。'},
+  ];
 }
 function reloadSample(){
-  S.nyuka={};S.hanbai={};S.masters=[];S.activeSellRow=null;
+  S.nyuka={};S.hanbai={};S.masters=[];S.nyukaMasters=[];S.hinmokuMasters=[];S.activeSellRow=null;
   loadSampleData();
   renderAll();
 }
@@ -575,7 +686,7 @@ function changeDate(d){const nd=new Date(S.currentDate);nd.setDate(nd.getDate()+
 function changeMonth(d){S.reportMonth=new Date(S.reportMonth.getFullYear(),S.reportMonth.getMonth()+d,1);renderReport();}
 
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',['summary','nyuka','hanbai','zaiko','master','report'][i]===t);});
+  document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',['summary','nyuka','hanbai','zaiko','report','nyuka-master','master','hinmoku-master'][i]===t);});
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   renderAll();
@@ -592,7 +703,7 @@ function switchReport(m){
 // ── render all ──
 function renderAll(){
   document.getElementById('date-disp').textContent=fmtD(S.currentDate);
-  renderSummary();renderNyuka();renderHanbai();renderZaiko();renderMaster();renderReport();
+  renderSummary();renderNyuka();renderHanbai();renderZaiko();renderMaster();renderNyukaMaster();renderHinmokuMaster();renderReport();
 }
 
 // ── summary ──
@@ -616,9 +727,29 @@ function renderSummary(){
 // ── nyuka ──
 function renderNyuka(){
   const ny=getNy();
-  document.getElementById('nyuka-body').innerHTML=ny.length===0?`<tr><td colspan="9" class="empty">入荷データがありません。</td></tr>`:ny.map(r=>`<tr><td><b>${r.hinmoku}</b></td><td>${r.sanchi||'-'}</td><td><span class="badge b-blue">${r.toukyu}</span> ${r.size||'-'}</td><td>${r.tani}</td><td>${r.suryo}</td><td>¥${fmt(r.shiire)}</td><td><span class="badge b-gray">${r.method}</span></td><td>¥${fmt(r.suryo*r.shiire)}</td><td><button class="action-btn" onclick="delNyuka(${r.id})">🗑</button></td></tr>`).join('');
+  const nyukaTableHead=document.querySelector('#tab-nyuka .tbl-wrap table thead tr');
+  if(nyukaTableHead) nyukaTableHead.innerHTML='<th>品目</th><th>入荷先</th><th>産地</th><th>等級/サイズ</th><th>単位</th><th>入荷数</th><th>仕入値/単位</th><th>方法</th><th>仕入総額</th><th></th>';
+  document.getElementById('nyuka-body').innerHTML=ny.length===0?`<tr><td colspan="10" class="empty">入荷データがありません。</td></tr>`:ny.map(r=>{
+    const nm=S.nyukaMasters.find(x=>x.id===r.nyukaMasterId);
+    return`<tr><td><b>${r.hinmoku}</b></td><td>${nm?`<span class="badge b-teal">${nm.name}</span>`:'-'}</td><td>${r.sanchi||'-'}</td><td><span class="badge b-blue">${r.toukyu}</span> ${r.size||'-'}</td><td>${r.tani}</td><td>${r.suryo}</td><td>¥${fmt(r.shiire)}</td><td><span class="badge b-gray">${r.method}</span></td><td>¥${fmt(r.suryo*r.shiire)}</td><td><button class="action-btn" onclick="delNyuka(${r.id})">🗑</button></td></tr>`;
+  }).join('');
 }
-function openNyukaModal(){['n-hinmoku','n-sanchi','n-size','n-shiire','n-suryo'].forEach(id=>document.getElementById(id).value='');document.getElementById('nyuka-modal').classList.add('show');}
+function openNyukaModal(){
+  ['n-hinmoku','n-sanchi','n-size','n-shiire','n-suryo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('n-nyuka-master').innerHTML='<option value="">-- 選択またはフリー入力 --</option>'+S.nyukaMasters.map(m=>`<option value="${m.id}">${m.name}（${m.sanchi}）</option>`).join('');
+  document.getElementById('n-hinmoku-master').innerHTML='<option value="">-- 選択またはフリー入力 --</option>'+S.hinmokuMasters.map(m=>`<option value="${m.id}">${m.name}（${m.category}）</option>`).join('');
+  document.getElementById('nyuka-modal').classList.add('show');
+}
+function onNyukaMasterSelect(){
+  const id=parseInt(document.getElementById('n-nyuka-master').value);
+  const m=S.nyukaMasters.find(x=>x.id===id);
+  if(m){document.getElementById('n-sanchi').value=m.sanchi;document.getElementById('n-method').value=m.type;}
+}
+function onHinmokuMasterSelect(){
+  const id=parseInt(document.getElementById('n-hinmoku-master').value);
+  const m=S.hinmokuMasters.find(x=>x.id===id);
+  if(m){document.getElementById('n-hinmoku').value=m.name;document.getElementById('n-tani').value=m.tani;document.getElementById('n-toukyu').value=m.toukyu;}
+}
 function saveNyuka(){
   const hinmoku=document.getElementById('n-hinmoku').value.trim();
   const suryo=parseInt(document.getElementById('n-suryo').value);
@@ -626,7 +757,8 @@ function saveNyuka(){
   if(!hinmoku||isNaN(suryo)||isNaN(shiire)){alert('品目・数量・仕入れ値を入力してください');return;}
   const key=dk(S.currentDate);
   if(!S.nyuka[key])S.nyuka[key]=[];
-  S.nyuka[key].push({id:Date.now(),hinmoku,sanchi:document.getElementById('n-sanchi').value.trim(),toukyu:document.getElementById('n-toukyu').value,size:document.getElementById('n-size').value.trim(),tani:document.getElementById('n-tani').value,suryo,shiire,method:document.getElementById('n-method').value});
+  const nyukaMasterId=parseInt(document.getElementById('n-nyuka-master').value)||null;
+  S.nyuka[key].push({id:Date.now(),hinmoku,sanchi:document.getElementById('n-sanchi').value.trim(),toukyu:document.getElementById('n-toukyu').value,size:document.getElementById('n-size').value.trim(),tani:document.getElementById('n-tani').value,suryo,shiire,method:document.getElementById('n-method').value,nyukaMasterId});
   closeOverlay('nyuka-modal');renderAll();
 }
 function delNyuka(id){const key=dk(S.currentDate);S.nyuka[key]=(S.nyuka[key]||[]).filter(r=>r.id!==id);renderAll();}
@@ -808,6 +940,90 @@ function saveMaster(){
   closeOverlay('master-modal');renderAll();
 }
 function delMaster(id){if(!confirm('削除しますか？'))return;S.masters=S.masters.filter(x=>x.id!==id);renderMaster();}
+
+// ── nyuka master ──
+function renderNyukaMaster(){
+  const ml=document.getElementById('nyuka-master-list');
+  if(!ml)return;
+  if(!S.nyukaMasters.length){ml.innerHTML='<p style="color:var(--text3);font-size:12px">入荷先が登録されていません。</p>';return;}
+  ml.innerHTML=S.nyukaMasters.map(m=>`
+    <div class="master-card">
+      <div>
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-gyotai"><span class="badge b-teal">${m.sanchi}</span> <span class="badge b-gray">${m.type}</span>${m.tanto?' 担当：'+m.tanto:''}</div>
+        ${m.tel?`<div class="mc-note">📞 ${m.tel}</div>`:''}
+        ${m.hinmoku?`<div class="mc-note">🥬 ${m.hinmoku}</div>`:''}
+        ${m.note?`<div class="mc-note" style="color:var(--text3)">📝 ${m.note}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="action-btn" onclick="editNyukaMaster(${m.id})" title="編集">✏️</button>
+        <button class="action-btn" onclick="delNyukaMaster(${m.id})" title="削除">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openNyukaMasterModal(){
+  ['nm-name','nm-sanchi','nm-tanto','nm-tel','nm-hinmoku','nm-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nm-id').value='';
+  document.getElementById('nm-type').value='せり';
+  document.getElementById('nyuka-master-modal').classList.add('show');
+}
+function editNyukaMaster(id){
+  const m=S.nyukaMasters.find(x=>x.id===id);if(!m)return;
+  document.getElementById('nm-id').value=m.id;
+  document.getElementById('nm-name').value=m.name;
+  document.getElementById('nm-sanchi').value=m.sanchi||'';
+  document.getElementById('nm-tanto').value=m.tanto||'';
+  document.getElementById('nm-tel').value=m.tel||'';
+  document.getElementById('nm-hinmoku').value=m.hinmoku||'';
+  document.getElementById('nm-type').value=m.type||'せり';
+  document.getElementById('nm-note').value=m.note||'';
+  document.getElementById('nyuka-master-modal').classList.add('show');
+}
+function saveNyukaMaster(){
+  const name=document.getElementById('nm-name').value.trim();
+  if(!name){alert('入荷先名を入力してください');return;}
+  const existId=parseInt(document.getElementById('nm-id').value);
+  const obj={id:existId||Date.now(),name,sanchi:document.getElementById('nm-sanchi').value.trim(),tanto:document.getElementById('nm-tanto').value.trim(),tel:document.getElementById('nm-tel').value.trim(),hinmoku:document.getElementById('nm-hinmoku').value.trim(),type:document.getElementById('nm-type').value,note:document.getElementById('nm-note').value.trim()};
+  if(existId){const idx=S.nyukaMasters.findIndex(x=>x.id===existId);if(idx>=0)S.nyukaMasters[idx]=obj;}
+  else{S.nyukaMasters.push(obj);}
+  closeOverlay('nyuka-master-modal');renderAll();
+}
+function delNyukaMaster(id){if(!confirm('削除しますか？'))return;S.nyukaMasters=S.nyukaMasters.filter(x=>x.id!==id);renderNyukaMaster();}
+
+// ── hinmoku master ──
+function renderHinmokuMaster(){
+  const tbody=document.getElementById('hinmoku-master-body');
+  if(!tbody)return;
+  tbody.innerHTML=S.hinmokuMasters.length===0?`<tr><td colspan="6" class="empty">品目が登録されていません。</td></tr>`:S.hinmokuMasters.map(m=>`
+    <tr><td><b>${m.name}</b></td><td>${m.category||'-'}</td><td>${m.tani}</td><td><span class="badge b-blue">${m.toukyu}</span></td><td style="font-size:11px;color:var(--text2)">${m.note||'-'}</td><td style="white-space:nowrap"><button class="action-btn" onclick="editHinmokuMaster(${m.id})" title="編集">✏️</button><button class="action-btn" onclick="delHinmokuMaster(${m.id})" title="削除">🗑</button></td></tr>`).join('');
+}
+function openHinmokuMasterModal(){
+  ['hm-name','hm-category','hm-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('hm-id').value='';
+  document.getElementById('hm-tani').value='ケース';
+  document.getElementById('hm-toukyu').value='秀';
+  document.getElementById('hinmoku-master-modal').classList.add('show');
+}
+function editHinmokuMaster(id){
+  const m=S.hinmokuMasters.find(x=>x.id===id);if(!m)return;
+  document.getElementById('hm-id').value=m.id;
+  document.getElementById('hm-name').value=m.name;
+  document.getElementById('hm-category').value=m.category||'';
+  document.getElementById('hm-tani').value=m.tani;
+  document.getElementById('hm-toukyu').value=m.toukyu;
+  document.getElementById('hm-note').value=m.note||'';
+  document.getElementById('hinmoku-master-modal').classList.add('show');
+}
+function saveHinmokuMaster(){
+  const name=document.getElementById('hm-name').value.trim();
+  if(!name){alert('品目名を入力してください');return;}
+  const existId=parseInt(document.getElementById('hm-id').value);
+  const obj={id:existId||Date.now(),name,category:document.getElementById('hm-category').value.trim(),tani:document.getElementById('hm-tani').value,toukyu:document.getElementById('hm-toukyu').value,note:document.getElementById('hm-note').value.trim()};
+  if(existId){const idx=S.hinmokuMasters.findIndex(x=>x.id===existId);if(idx>=0)S.hinmokuMasters[idx]=obj;}
+  else{S.hinmokuMasters.push(obj);}
+  closeOverlay('hinmoku-master-modal');renderAll();
+}
+function delHinmokuMaster(id){if(!confirm('削除しますか？'))return;S.hinmokuMasters=S.hinmokuMasters.filter(x=>x.id!==id);renderHinmokuMaster();}
 
 // ── report ──
 function renderReport(){
