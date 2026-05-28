@@ -122,6 +122,7 @@ tr:hover td{background:#fafaf7}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2"/><path d="M12 2c0 0-4 4-4 10s4 10 4 10"/><path d="M2 12h20"/></svg>
       青果仲卸 営業管理
     </div>
+    <button class="btn" onclick="reloadSample()" style="font-size:11px;padding:4px 10px;color:var(--text2)">🔄 サンプルデータ表示</button>
     <div class="date-nav">
       <button onclick="changeDate(-1)">◀</button>
       <span class="date-disp" id="date-disp"></span>
@@ -401,7 +402,7 @@ function getZaikoRows(){
 }
 
 // ── sample data ──
-(function(){
+function loadSampleData(){
   const key=dk(S.currentDate);
   // にんじん
   const n1={id:1001,hinmoku:'にんじん',sanchi:'千葉県',toukyu:'秀',size:'2L',tani:'ケース',suryo:40,shiire:1800,method:'せり'};
@@ -495,7 +496,13 @@ function getZaikoRows(){
     {id:3004,name:'ファミレスチェーンA',gyotai:'外食チェーン',tanto:'山田 花子',tel:'03-777-8888',note:'週1まとめ発注'},
     {id:3005,name:'給食センター さいたま',gyotai:'業務用',tanto:'中村 三郎',tel:'048-999-0000',note:'規格品のみ・月曜締め'},
   ];
-})();
+}
+function reloadSample(){
+  S.nyuka={};S.hanbai={};S.masters=[];S.activeSellRow=null;
+  loadSampleData();
+  renderAll();
+}
+loadSampleData();
 
 // ── nav ──
 function changeDate(d){const nd=new Date(S.currentDate);nd.setDate(nd.getDate()+d);S.currentDate=nd;S.activeSellRow=null;renderAll();}
