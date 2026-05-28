@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>青果仲卸 営業管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f2;--surface:#ffffff;--surface2:#f2f1ed;--surface3:#e8e6e0;
+  --text:#1a1a18;--text2:#5a5a55;--text3:#9a9a92;
+  --border:#dddbd4;--border2:#c8c6be;
+  --green:#2d6a2d;--green-bg:#e8f4e8;--green-text:#1a4a1a;
+  --amber:#8a5a00;--amber-bg:#fef3d8;--amber-text:#5a3a00;
+  --red:#a02020;--red-bg:#fde8e8;--red-text:#6a1010;
+  --blue:#1a5a8a;--blue-bg:#e4f0fa;--blue-text:#0a3a6a;
+  --teal:#0a6a5a;--teal-bg:#e0f4f0;--teal-text:#004a3a;
+  --accent:#2d6a2d;
+  --radius:6px;--radius-lg:10px;
+  font-size:14px;
+}
+body{font-family:'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+/* layout */
+.layout{display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;gap:12px;padding:0 24px;height:52px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--green)}
+.logo svg{width:22px;height:22px}
+.date-nav{display:flex;align-items:center;gap:6px;margin-left:auto}
+.date-nav button{background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:4px 10px;cursor:pointer;color:var(--text);font-size:12px;font-family:inherit}
+.date-nav button:hover{background:var(--surface2)}
+.date-disp{font-size:13px;font-weight:600;min-width:140px;text-align:center}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;flex-shrink:0}
+.tab{padding:10px 16px;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:5px}
+.tab.active{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+.tab:hover:not(.active){color:var(--text)}
+.main{flex:1;overflow:auto;padding:24px}
+/* section */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-title{font-size:14px;font-weight:700}
+.sec-note{font-size:11px;color:var(--text3)}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);cursor:pointer;font-size:12px;color:var(--text);font-family:inherit}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-primary:hover{background:#1e4e1e}
+.btn-sell{background:var(--blue-bg);color:var(--blue-text);border-color:#a8c8e8;font-size:11px;padding:3px 9px}
+.btn-sell:hover{background:#c8def4}
+.btn-sell.open{background:var(--surface3);color:var(--text2);border-color:var(--border2)}
+.btn-csv{background:var(--teal-bg);color:var(--teal-text);border-color:#80c0b0}
+.btn-csv:hover{background:#c0e8e0}
+.btn-danger{color:var(--red);border-color:#f0c0c0}
+.btn-danger:hover{background:var(--red-bg)}
+/* table */
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}
+th{font-size:11px;font-weight:600;color:var(--text2);padding:8px 10px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf7}
+.action-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px;border-radius:3px;font-size:13px}
+.action-btn:hover{color:var(--red);background:var(--red-bg)}
+/* badge */
+.badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green-text)}
+.b-amber{background:var(--amber-bg);color:var(--amber-text)}
+.b-red{background:var(--red-bg);color:var(--red-text)}
+.b-blue{background:var(--blue-bg);color:var(--blue-text)}
+.b-gray{background:var(--surface3);color:var(--text2)}
+.b-teal{background:var(--teal-bg);color:var(--teal-text)}
+/* summary cards */
+.sum-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.sum-card .lbl{font-size:11px;color:var(--text3);margin-bottom:4px}
+.sum-card .val{font-size:20px;font-weight:700}
+.sum-card .sub{font-size:10px;color:var(--text3);margin-top:3px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* profit colors */
+.p-pos{color:var(--green);font-weight:600}
+.p-neg{color:var(--red);font-weight:600}
+/* modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:24px;width:500px;max-width:95vw;max-height:90vh;overflow:auto;border:1px solid var(--border)}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.form-row.full{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:11px;color:var(--text2);font-weight:600}
+.fg input,.fg select,.fg textarea{padding:6px 9px;border:1px solid var(--border2);border-radius:var(--radius);font-size:12px;background:var(--surface);color:var(--text);width:100%;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--green)}
+.fg input[readonly]{background:var(--surface2);cursor:default}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+/* inline sell form */
+.inline-form{background:var(--blue-bg);border:1px solid #a8c8e8;border-radius:var(--radius-lg);padding:14px 16px;margin-top:6px}
+.inline-form .ftitle{font-size:12px;font-weight:700;color:var(--blue-text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.inline-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr auto;gap:8px;align-items:end}
+.calc-row{display:flex;gap:20px;margin-top:8px;padding-top:8px;border-top:1px solid #c0d8ec;font-size:11px;color:var(--text2)}
+.calc-val{font-weight:700;color:var(--text);margin-left:3px}
+/* tabs hidden */
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* master list */
+.master-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
+.master-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between}
+.master-card .mc-name{font-size:13px;font-weight:600}
+.master-card .mc-gyotai{font-size:11px;color:var(--text3);margin-top:2px}
+.master-card .mc-note{font-size:11px;color:var(--text2);margin-top:4px}
+/* weekly/monthly */
+.period-tabs{display:flex;gap:6px;margin-bottom:16px}
+.ptab{padding:6px 14px;border-radius:var(--radius);border:1px solid var(--border2);cursor:pointer;font-size:12px;color:var(--text2);background:var(--surface);font-family:inherit}
+.ptab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.agg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:12px}
+/* scrollable table wrapper */
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius-lg);border:1px solid var(--border)}
+.tbl-wrap table{border:none;border-radius:0}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2"/><path d="M12 2c0 0-4 4-4 10s4 10 4 10"/><path d="M2 12h20"/></svg>
+      青果仲卸 営業管理
+    </div>
+    <div class="date-nav">
+      <button onclick="changeDate(-1)">◀</button>
+      <span class="date-disp" id="date-disp"></span>
+      <button onclick="changeDate(1)">▶</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('summary')">📊 日次サマリ</div>
+    <div class="tab" onclick="switchTab('nyuka')">📦 入荷管理</div>
+    <div class="tab" onclick="switchTab('hanbai')">🧾 販売管理</div>
+    <div class="tab" onclick="switchTab('zaiko')">📋 在庫一覧</div>
+    <div class="tab" onclick="switchTab('master')">🏪 販売先マスタ</div>
+    <div class="tab" onclick="switchTab('report')">📈 集計・出力</div>
+  </div>
+
+  <div class="main">
+
+    <!-- 日次サマリ -->
+    <div class="tab-content active" id="tab-summary">
+      <div class="sum-grid" id="sum-cards"></div>
+      <div class="two-col">
+        <div>
+          <div class="sec-head"><span class="sec-title">本日の入荷</span></div>
+          <table><thead><tr><th>品目</th><th>産地・等級</th><th>数量</th><th>仕入値/単位</th></tr></thead>
+          <tbody id="sum-nyuka-body"></tbody></table>
+        </div>
+        <div>
+          <div class="sec-head"><span class="sec-title">本日の販売</span></div>
+          <table><thead><tr><th>品目</th><th>販売先</th><th>数量</th><th>粗利</th></tr></thead>
+          <tbody id="sum-hanbai-body"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 入荷管理 -->
+    <div class="tab-content" id="tab-nyuka">
+      <div class="sec-head">
+        <span class="sec-title">入荷登録</span>
+        <button class="btn btn-primary" onclick="openNyukaModal()">＋ 入荷を追加</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>品目</th><th>産地</th><th>等級/サイズ</th><th>単位</th><th>入荷数</th><th>仕入値/単位</th><th>方法</th><th>仕入総額</th><th></th></tr></thead>
+          <tbody id="nyuka-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 販売管理 -->
+    <div class="tab-content" id="tab-hanbai">
+      <div class="sec-head">
+        <span class="sec-title">販売管理</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-csv" onclick="exportHanbaiCSV()">⬇ CSV出力</button>
+          <button class="btn btn-primary" onclick="openHanbaiModal()">＋ 販売を追加</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>品目</th><th>販売先</th><th>業態</th><th>等級</th><th>数量</th><th>売値/単位</th><th>売上</th><th>原価</th><th>粗利</th><th>粗利率</th><th></th></tr></thead>
+          <tbody id="hanbai-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 在庫一覧 -->
+    <div class="tab-content" id="tab-zaiko">
+      <div class="sec-head">
+        <span class="sec-title">在庫一覧</span>
+        <span class="sec-note">「販売する」ボタンから直接販売登録できます</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>品目</th><th>産地</th><th>等級/サイズ</th><th>単位</th><th>入荷</th><th>販売済</th><th>残在庫</th><th>仕入値</th><th>評価額</th><th>状態</th><th></th></tr></thead>
+          <tbody id="zaiko-body"></tbody>
+        </table>
+      </div>
+      <div id="inline-sell-area"></div>
+    </div>
+
+    <!-- 販売先マスタ -->
+    <div class="tab-content" id="tab-master">
+      <div class="sec-head">
+        <span class="sec-title">販売先マスタ</span>
+        <button class="btn btn-primary" onclick="openMasterModal()">＋ 販売先を追加</button>
+      </div>
+      <div class="master-list" id="master-list"></div>
+    </div>
+
+    <!-- 集計・出力 -->
+    <div class="tab-content" id="tab-report">
+      <div class="period-tabs">
+        <button class="ptab active" onclick="switchReport('weekly')">週次集計</button>
+        <button class="ptab" onclick="switchReport('monthly')">月次集計</button>
+      </div>
+      <div id="report-weekly" class="report-section">
+        <div class="sec-head">
+          <span class="sec-title">週次集計（直近7日間）</span>
+          <button class="btn btn-csv" onclick="exportReportCSV('weekly')">⬇ CSV出力</button>
+        </div>
+        <div class="agg-grid" id="weekly-cards"></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>日付</th><th>入荷仕入総額</th><th>売上合計</th><th>販売原価</th><th>粗利合計</th><th>粗利率</th><th>販売件数</th></tr></thead>
+          <tbody id="weekly-body"></tbody>
+        </table></div>
+        <div style="margin-top:20px">
+          <div class="sec-head"><span class="sec-title">販売先別 売上（週次）</span></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>販売先</th><th>業態</th><th>件数</th><th>売上合計</th><th>粗利合計</th><th>粗利率</th></tr></thead>
+            <tbody id="weekly-customer-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div id="report-monthly" class="report-section" style="display:none">
+        <div class="sec-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="sec-title">月次集計</span>
+            <button class="btn" onclick="changeMonth(-1)">◀</button>
+            <span id="month-disp" style="font-size:13px;font-weight:700;min-width:80px;text-align:center"></span>
+            <button class="btn" onclick="changeMonth(1)">▶</button>
+          </div>
+          <button class="btn btn-csv" onclick="exportReportCSV('monthly')">⬇ CSV出力</button>
+        </div>
+        <div class="agg-grid" id="monthly-cards"></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>日付</th><th>入荷仕入総額</th><th>売上合計</th><th>販売原価</th><th>粗利合計</th><th>粗利率</th><th>販売件数</th></tr></thead>
+          <tbody id="monthly-body"></tbody>
+        </table></div>
+        <div style="margin-top:20px">
+          <div class="sec-head"><span class="sec-title">販売先別 売上（月次）</span></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>販売先</th><th>業態</th><th>件数</th><th>売上合計</th><th>粗利合計</th><th>粗利率</th></tr></thead>
+            <tbody id="monthly-customer-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 入荷モーダル -->
+<div class="overlay" id="nyuka-modal" onclick="closeOverlay('nyuka-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>📦 入荷登録</h3>
+    <div class="form-row">
+      <div class="fg"><label>品目名</label><input type="text" id="n-hinmoku" placeholder="例：キャベツ"></div>
+      <div class="fg"><label>産地</label><input type="text" id="n-sanchi" placeholder="例：群馬県"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>等級</label><select id="n-toukyu"><option>秀</option><option>優</option><option>良</option><option>並</option><option>規格外</option></select></div>
+      <div class="fg"><label>サイズ</label><input type="text" id="n-size" placeholder="例：M、2L、10kg"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>入荷単位</label><select id="n-tani"><option>ケース</option><option>箱</option><option>袋</option><option>コンテナ</option><option>本</option><option>個</option><option>kg</option></select></div>
+      <div class="fg"><label>入荷数</label><input type="number" id="n-suryo" placeholder="例：50" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>仕入れ方法</label><select id="n-method"><option>せり</option><option>相対</option><option>産地直送</option></select></div>
+      <div class="fg"><label>仕入れ値（円/単位）</label><input type="number" id="n-shiire" placeholder="例：1200" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeOverlay('nyuka-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveNyuka()">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 販売モーダル -->
+<div class="overlay" id="hanbai-modal" onclick="closeOverlay('hanbai-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>🧾 販売登録</h3>
+    <div class="form-row">
+      <div class="fg"><label>品目（入荷済みから）</label><select id="h-nyuka" onchange="onHNyukaChange()"></select></div>
+      <div class="fg"><label>残在庫</label><input type="text" id="h-zaiko" readonly></div>
+    </div>
+    <div class="form-row">
+      <div class="fg">
+        <label>販売先（マスタから選択）</label>
+        <select id="h-master" onchange="onMasterSelect()">
+          <option value="">-- 選択またはフリー入力 --</option>
+        </select>
+      </div>
+      <div class="fg"><label>業態</label><select id="h-gyotai"><option>スーパー</option><option>八百屋</option><option>飲食店</option><option>外食チェーン</option><option>業務用</option><option>その他</option></select></div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>販売先名（フリー入力可）</label><input type="text" id="h-hanbaisaki" placeholder="例：スーパーOO"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>販売数量</label><input type="number" id="h-suryo" min="0" oninput="calcModalProfit()"></div>
+      <div class="fg"><label>売値（円/単位）</label><input type="number" id="h-nebiki" min="0" oninput="calcModalProfit()"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>売上（自動）</label><input type="text" id="h-uriage" readonly></div>
+      <div class="fg"><label>粗利（自動）</label><input type="text" id="h-arari" readonly></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeOverlay('hanbai-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveHanbai()">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 販売先マスタ登録モーダル -->
+<div class="overlay" id="master-modal" onclick="closeOverlay('master-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>🏪 販売先登録</h3>
+    <input type="hidden" id="m-id">
+    <div class="form-row">
+      <div class="fg"><label>販売先名</label><input type="text" id="m-name" placeholder="例：マルエツ 南浦和店"></div>
+      <div class="fg"><label>業態</label><select id="m-gyotai"><option>スーパー</option><option>八百屋</option><option>飲食店</option><option>外食チェーン</option><option>業務用</option><option>その他</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>担当者名</label><input type="text" id="m-tanto" placeholder="例：田中 太郎"></div>
+      <div class="fg"><label>電話番号</label><input type="text" id="m-tel" placeholder="例：048-XXX-XXXX"></div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>備考</label><textarea id="m-note" rows="2" placeholder="例：毎週月水金発注、特売対応可"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeOverlay('master-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveMaster()">登録</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const S={
+  currentDate:new Date(),
+  reportMonth:new Date(),
+  nyuka:{},
+  hanbai:{},
+  masters:[],
+  activeSellRow:null,
+  reportMode:'weekly'
+};
+
+// ── utils ──
+function dk(d){return d.toISOString().split('T')[0];}
+function fmtD(d){const w=['日','月','火','水','木','金','土'];return`${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())}（${w[d.getDay()]}）`;}
+function p2(n){return String(n).padStart(2,'0');}
+function fmt(n){return Number(n||0).toLocaleString();}
+function getNy(){return S.nyuka[dk(S.currentDate)]||[];}
+function getHb(){return S.hanbai[dk(S.currentDate)]||[];}
+// 全日付のnyukaからロットを検索（繰越在庫対応）
+function findNyukaById(nid){
+  for(const key of Object.keys(S.nyuka)){
+    const found=S.nyuka[key].find(r=>r.id===nid);
+    if(found)return found;
+  }
+  return null;
+}
+// 全日付の販売履歴からnyukaIdで集計（繰越対応）
+function getTotalSoldById(nid){
+  return Object.values(S.hanbai).flat().filter(h=>h.nyukaId===nid).reduce((s,h)=>s+h.suryo,0);
+}
+function getZk(nid){
+  const n=getNy().find(r=>r.id===nid)||findNyukaById(nid);
+  if(!n)return 0;
+  return n.suryo-getTotalSoldById(nid);
+}
+// 在庫タブ用：当日入荷＋繰越在庫ロット両方を表示
+function getZaikoRows(){
+  const today=dk(S.currentDate);
+  const nyToday=S.nyuka[today]||[];
+  // 前日以前のロットで残在庫があるもの（繰越）
+  const prev=new Date(S.currentDate);prev.setDate(prev.getDate()-1);
+  const yesterday=dk(prev);
+  const carryoverIds=new Set((S.hanbai[today]||[]).filter(h=>h.carryover).map(h=>h.nyukaId));
+  const carryoverRows=[];
+  carryoverIds.forEach(nid=>{
+    const n=findNyukaById(nid);
+    if(n)carryoverRows.push({...n,_carryover:true});
+  });
+  return[...carryoverRows,...nyToday];
+}
+
+// ── sample data ──
+(function(){
+  const key=dk(S.currentDate);
+  // にんじん
+  const n1={id:1001,hinmoku:'にんじん',sanchi:'千葉県',toukyu:'秀',size:'2L',tani:'ケース',suryo:40,shiire:1800,method:'せり'};
+  const n2={id:1002,hinmoku:'にんじん',sanchi:'徳島県',toukyu:'優',size:'M',tani:'ケース',suryo:30,shiire:1400,method:'相対'};
+  const n3={id:1003,hinmoku:'にんじん',sanchi:'北海道',toukyu:'良',size:'S',tani:'袋',suryo:60,shiire:800,method:'産地直送'};
+  // ねぎ
+  const n4={id:1004,hinmoku:'ねぎ',sanchi:'埼玉県',toukyu:'秀',size:'L',tani:'ケース',suryo:50,shiire:2200,method:'せり'};
+  const n5={id:1005,hinmoku:'ねぎ',sanchi:'茨城県',toukyu:'優',size:'M',tani:'ケース',suryo:35,shiire:1700,method:'相対'};
+  // 大根
+  const n6={id:1006,hinmoku:'大根',sanchi:'神奈川県',toukyu:'秀',size:'2L',tani:'ケース',suryo:45,shiire:1500,method:'せり'};
+  const n7={id:1007,hinmoku:'大根',sanchi:'青森県',toukyu:'良',size:'M',tani:'袋',suryo:80,shiire:700,method:'産地直送'};
+  // ほうれん草
+  const n8={id:1008,hinmoku:'ほうれん草',sanchi:'群馬県',toukyu:'秀',size:'200g×10束',tani:'ケース',suryo:30,shiire:2800,method:'せり'};
+  const n9={id:1009,hinmoku:'ほうれん草',sanchi:'栃木県',toukyu:'優',size:'200g×8束',tani:'ケース',suryo:25,shiire:2200,method:'相対'};
+  S.nyuka[key]=[n1,n2,n3,n4,n5,n6,n7,n8,n9];
+  S.hanbai[key]=[
+    // にんじん
+    {id:2001,nyukaId:1001,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:15,nebiki:2600,tani:'ケース',shiire:1800},
+    {id:2002,nyukaId:1001,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'西友 草加店',gyotai:'スーパー',suryo:10,nebiki:2500,tani:'ケース',shiire:1800},
+    {id:2003,nyukaId:1002,hinmoku:'にんじん',toukyu:'優',sanchi:'徳島県',hanbaisaki:'八百屋 田中商店',gyotai:'八百屋',suryo:12,nebiki:2000,tani:'ケース',shiire:1400},
+    {id:2004,nyukaId:1002,hinmoku:'にんじん',toukyu:'優',sanchi:'徳島県',hanbaisaki:'ファミレスチェーンA',gyotai:'外食チェーン',suryo:10,nebiki:1900,tani:'ケース',shiire:1400},
+    {id:2005,nyukaId:1003,hinmoku:'にんじん',toukyu:'良',sanchi:'北海道',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:30,nebiki:1100,tani:'袋',shiire:800},
+    // ねぎ
+    {id:2006,nyukaId:1004,hinmoku:'ねぎ',toukyu:'秀',sanchi:'埼玉県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:18,nebiki:3100,tani:'ケース',shiire:2200},
+    {id:2007,nyukaId:1004,hinmoku:'ねぎ',toukyu:'秀',sanchi:'埼玉県',hanbaisaki:'ファミレスチェーンA',gyotai:'外食チェーン',suryo:12,nebiki:3000,tani:'ケース',shiire:2200},
+    {id:2008,nyukaId:1005,hinmoku:'ねぎ',toukyu:'優',sanchi:'茨城県',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:20,nebiki:2300,tani:'ケース',shiire:1700},
+    // 大根
+    {id:2009,nyukaId:1006,hinmoku:'大根',toukyu:'秀',sanchi:'神奈川県',hanbaisaki:'西友 草加店',gyotai:'スーパー',suryo:20,nebiki:2100,tani:'ケース',shiire:1500},
+    {id:2010,nyukaId:1006,hinmoku:'大根',toukyu:'秀',sanchi:'神奈川県',hanbaisaki:'八百屋 田中商店',gyotai:'八百屋',suryo:10,nebiki:2200,tani:'ケース',shiire:1500},
+    {id:2011,nyukaId:1007,hinmoku:'大根',toukyu:'良',sanchi:'青森県',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:40,nebiki:950,tani:'袋',shiire:700},
+    // ほうれん草
+    {id:2012,nyukaId:1008,hinmoku:'ほうれん草',toukyu:'秀',sanchi:'群馬県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:12,nebiki:3800,tani:'ケース',shiire:2800},
+    {id:2013,nyukaId:1008,hinmoku:'ほうれん草',toukyu:'秀',sanchi:'群馬県',hanbaisaki:'ファミレスチェーンA',gyotai:'外食チェーン',suryo:8,nebiki:3700,tani:'ケース',shiire:2800},
+    {id:2014,nyukaId:1009,hinmoku:'ほうれん草',toukyu:'優',sanchi:'栃木県',hanbaisaki:'八百屋 田中商店',gyotai:'八百屋',suryo:10,nebiki:2900,tani:'ケース',shiire:2200},
+  ];
+  // ── 翌日データ（今日の在庫繰越あり）──
+  // 今日の残在庫：にんじん秀15ケース・ねぎ秀20ケース・大根良40袋 を翌日分に持ち越し
+  const tmr=new Date(S.currentDate);tmr.setDate(tmr.getDate()+1);
+  const tk=dk(tmr);
+  // 翌日の新規入荷（にんじん・大根・ほうれん草）
+  const t1={id:5001,hinmoku:'にんじん',sanchi:'千葉県',toukyu:'秀',size:'2L',tani:'ケース',suryo:35,shiire:1850,method:'せり'};
+  const t2={id:5002,hinmoku:'大根',sanchi:'神奈川県',toukyu:'秀',size:'2L',tani:'ケース',suryo:40,shiire:1550,method:'せり'};
+  const t3={id:5003,hinmoku:'ほうれん草',sanchi:'群馬県',toukyu:'秀',size:'200g×10束',tani:'ケース',suryo:28,shiire:2750,method:'相対'};
+  // 繰越在庫ロット（前日からの持ち越し）— nyukaIdは今日と同じidを参照
+  // ※在庫から販売する場合、前日ロット(id:1001,1004,1007)をそのまま翌日の販売紐付けに使う
+  S.nyuka[tk]=[t1,t2,t3];
+  S.hanbai[tk]=[
+    // ── 今日からの繰越在庫を翌日販売 ──
+    // にんじん秀 残15ケース → 5ケース販売（西友への追加納品）
+    {id:6001,nyukaId:1001,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'西友 草加店',gyotai:'スーパー',suryo:5,nebiki:2450,tani:'ケース',shiire:1800,carryover:true},
+    // ねぎ秀 残20ケース → 8ケース販売（給食センターへ追加）
+    {id:6002,nyukaId:1004,hinmoku:'ねぎ',toukyu:'秀',sanchi:'埼玉県',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:8,nebiki:2900,tani:'ケース',shiire:2200,carryover:true},
+    // 大根良 残40袋 → 15袋販売（八百屋へ）
+    {id:6003,nyukaId:1007,hinmoku:'大根',toukyu:'良',sanchi:'青森県',hanbaisaki:'八百屋 田中商店',gyotai:'八百屋',suryo:15,nebiki:880,tani:'袋',shiire:700,carryover:true},
+    // ── 翌日の新規入荷から販売 ──
+    {id:6004,nyukaId:5001,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:14,nebiki:2650,tani:'ケース',shiire:1850},
+    {id:6005,nyukaId:5001,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'ファミレスチェーンA',gyotai:'外食チェーン',suryo:10,nebiki:2550,tani:'ケース',shiire:1850},
+    {id:6006,nyukaId:5002,hinmoku:'大根',toukyu:'秀',sanchi:'神奈川県',hanbaisaki:'西友 草加店',gyotai:'スーパー',suryo:18,nebiki:2150,tani:'ケース',shiire:1550},
+    {id:6007,nyukaId:5002,hinmoku:'大根',toukyu:'秀',sanchi:'神奈川県',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:12,nebiki:2050,tani:'ケース',shiire:1550},
+    {id:6008,nyukaId:5003,hinmoku:'ほうれん草',toukyu:'秀',sanchi:'群馬県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:12,nebiki:3850,tani:'ケース',shiire:2750},
+    {id:6009,nyukaId:5003,hinmoku:'ほうれん草',toukyu:'秀',sanchi:'群馬県',hanbaisaki:'八百屋 田中商店',gyotai:'八百屋',suryo:8,nebiki:3750,tani:'ケース',shiire:2750},
+  ];
+  // 過去6日分のダミーデータ（4品目）
+  for(let i=1;i<=6;i++){
+    const dd=new Date(S.currentDate);dd.setDate(dd.getDate()-i);
+    const kk=dk(dd);
+    const sid=9000+i*20;
+    S.nyuka[kk]=[
+      {id:sid+1,hinmoku:'にんじん',sanchi:'千葉県',toukyu:'秀',size:'2L',tani:'ケース',suryo:35+i,shiire:1700+i*20,method:'せり'},
+      {id:sid+2,hinmoku:'にんじん',sanchi:'徳島県',toukyu:'優',size:'M',tani:'ケース',suryo:25+i,shiire:1350+i*10,method:'相対'},
+      {id:sid+3,hinmoku:'ねぎ',sanchi:'埼玉県',toukyu:'秀',size:'L',tani:'ケース',suryo:40+i,shiire:2100+i*15,method:'せり'},
+      {id:sid+4,hinmoku:'大根',sanchi:'神奈川県',toukyu:'秀',size:'2L',tani:'ケース',suryo:38+i,shiire:1450+i*10,method:'相対'},
+      {id:sid+5,hinmoku:'ほうれん草',sanchi:'群馬県',toukyu:'秀',size:'200g×10束',tani:'ケース',suryo:28+i,shiire:2700+i*20,method:'せり'},
+    ];
+    S.hanbai[kk]=[
+      {id:sid+6,nyukaId:sid+1,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:12+i,nebiki:2500+i*30,tani:'ケース',shiire:1700+i*20},
+      {id:sid+7,nyukaId:sid+1,hinmoku:'にんじん',toukyu:'秀',sanchi:'千葉県',hanbaisaki:'西友 草加店',gyotai:'スーパー',suryo:8+i,nebiki:2400+i*20,tani:'ケース',shiire:1700+i*20},
+      {id:sid+8,nyukaId:sid+2,hinmoku:'にんじん',toukyu:'優',sanchi:'徳島県',hanbaisaki:'八百屋 田中商店',gyotai:'八百屋',suryo:10+i,nebiki:1900+i*15,tani:'ケース',shiire:1350+i*10},
+      {id:sid+9,nyukaId:sid+3,hinmoku:'ねぎ',toukyu:'秀',sanchi:'埼玉県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:15+i,nebiki:3000+i*20,tani:'ケース',shiire:2100+i*15},
+      {id:sid+10,nyukaId:sid+3,hinmoku:'ねぎ',toukyu:'秀',sanchi:'埼玉県',hanbaisaki:'ファミレスチェーンA',gyotai:'外食チェーン',suryo:10+i,nebiki:2900+i*10,tani:'ケース',shiire:2100+i*15},
+      {id:sid+11,nyukaId:sid+4,hinmoku:'大根',toukyu:'秀',sanchi:'神奈川県',hanbaisaki:'西友 草加店',gyotai:'スーパー',suryo:18+i,nebiki:2000+i*15,tani:'ケース',shiire:1450+i*10},
+      {id:sid+12,nyukaId:sid+4,hinmoku:'大根',toukyu:'秀',sanchi:'神奈川県',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:10+i,nebiki:1900+i*10,tani:'ケース',shiire:1450+i*10},
+      {id:sid+13,nyukaId:sid+5,hinmoku:'ほうれん草',toukyu:'秀',sanchi:'群馬県',hanbaisaki:'マルエツ 南浦和店',gyotai:'スーパー',suryo:10+i,nebiki:3700+i*25,tani:'ケース',shiire:2700+i*20},
+      {id:sid+14,nyukaId:sid+5,hinmoku:'ほうれん草',toukyu:'秀',sanchi:'群馬県',hanbaisaki:'給食センター さいたま',gyotai:'業務用',suryo:8+i,nebiki:3500+i*15,tani:'ケース',shiire:2700+i*20},
+    ];
+  }
+  S.masters=[
+    {id:3001,name:'マルエツ 南浦和店',gyotai:'スーパー',tanto:'佐藤 健',tel:'048-111-2222',note:'月水金発注'},
+    {id:3002,name:'西友 草加店',gyotai:'スーパー',tanto:'鈴木 一郎',tel:'048-333-4444',note:''},
+    {id:3003,name:'八百屋 田中商店',gyotai:'八百屋',tanto:'田中 次郎',tel:'048-555-6666',note:'鮮度重視・少量多品種'},
+    {id:3004,name:'ファミレスチェーンA',gyotai:'外食チェーン',tanto:'山田 花子',tel:'03-777-8888',note:'週1まとめ発注'},
+    {id:3005,name:'給食センター さいたま',gyotai:'業務用',tanto:'中村 三郎',tel:'048-999-0000',note:'規格品のみ・月曜締め'},
+  ];
+})();
+
+// ── nav ──
+function changeDate(d){const nd=new Date(S.currentDate);nd.setDate(nd.getDate()+d);S.currentDate=nd;S.activeSellRow=null;renderAll();}
+function changeMonth(d){S.reportMonth=new Date(S.reportMonth.getFullYear(),S.reportMonth.getMonth()+d,1);renderReport();}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>{el.classList.toggle('active',['summary','nyuka','hanbai','zaiko','master','report'][i]===t);});
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  renderAll();
+}
+
+function switchReport(m){
+  S.reportMode=m;
+  document.querySelectorAll('.ptab').forEach((el,i)=>el.classList.toggle('active',['weekly','monthly'][i]===m));
+  document.getElementById('report-weekly').style.display=m==='weekly'?'block':'none';
+  document.getElementById('report-monthly').style.display=m==='monthly'?'block':'none';
+  renderReport();
+}
+
+// ── render all ──
+function renderAll(){
+  document.getElementById('date-disp').textContent=fmtD(S.currentDate);
+  renderSummary();renderNyuka();renderHanbai();renderZaiko();renderMaster();renderReport();
+}
+
+// ── summary ──
+function renderSummary(){
+  const ny=getNy(),ha=getHb();
+  const tS=ny.reduce((s,r)=>s+r.suryo*r.shiire,0);
+  const tU=ha.reduce((s,r)=>s+r.suryo*r.nebiki,0);
+  const tG=ha.reduce((s,r)=>s+r.suryo*r.shiire,0);
+  const tA=tU-tG;
+  const rA=tU?Math.round(tA/tU*100):0;
+  document.getElementById('sum-cards').innerHTML=`
+    <div class="sum-card"><div class="lbl">入荷仕入総額</div><div class="val">¥${fmt(tS)}</div><div class="sub">${ny.length}ロット入荷</div></div>
+    <div class="sum-card"><div class="lbl">売上合計</div><div class="val">¥${fmt(tU)}</div><div class="sub">${ha.length}件販売</div></div>
+    <div class="sum-card"><div class="lbl">販売原価</div><div class="val">¥${fmt(tG)}</div><div class="sub">販売分の仕入値合計</div></div>
+    <div class="sum-card"><div class="lbl">粗利合計</div><div class="val ${tA>=0?'p-pos':'p-neg'}">¥${fmt(tA)}</div><div class="sub">粗利率 ${rA}%</div></div>
+    <div class="sum-card"><div class="lbl">在庫ロット数</div><div class="val">${ny.length}</div><div class="sub">ロット</div></div>`;
+  document.getElementById('sum-nyuka-body').innerHTML=ny.length===0?`<tr><td colspan="4" class="empty">なし</td></tr>`:ny.map(r=>`<tr><td><b>${r.hinmoku}</b></td><td>${r.sanchi} <span class="badge b-blue">${r.toukyu}${r.size?'/'+r.size:''}</span></td><td>${r.suryo}${r.tani}</td><td>¥${fmt(r.shiire)}</td></tr>`).join('');
+  document.getElementById('sum-hanbai-body').innerHTML=ha.length===0?`<tr><td colspan="4" class="empty">なし</td></tr>`:ha.map(r=>{const a=r.suryo*(r.nebiki-r.shiire);const n=findNyukaById(r.nyukaId);const sz=n&&n.size?'/'+n.size:'';return`<tr><td><b>${r.hinmoku}</b> <span class="badge b-blue">${r.toukyu}${sz}</span></td><td>${r.hanbaisaki}</td><td>${r.suryo}${r.tani}</td><td class="${a>=0?'p-pos':'p-neg'}">¥${fmt(a)}</td></tr>`;}).join('');
+}
+
+// ── nyuka ──
+function renderNyuka(){
+  const ny=getNy();
+  document.getElementById('nyuka-body').innerHTML=ny.length===0?`<tr><td colspan="9" class="empty">入荷データがありません。</td></tr>`:ny.map(r=>`<tr><td><b>${r.hinmoku}</b></td><td>${r.sanchi||'-'}</td><td><span class="badge b-blue">${r.toukyu}</span> ${r.size||'-'}</td><td>${r.tani}</td><td>${r.suryo}</td><td>¥${fmt(r.shiire)}</td><td><span class="badge b-gray">${r.method}</span></td><td>¥${fmt(r.suryo*r.shiire)}</td><td><button class="action-btn" onclick="delNyuka(${r.id})">🗑</button></td></tr>`).join('');
+}
+function openNyukaModal(){['n-hinmoku','n-sanchi','n-size','n-shiire','n-suryo'].forEach(id=>document.getElementById(id).value='');document.getElementById('nyuka-modal').classList.add('show');}
+function saveNyuka(){
+  const hinmoku=document.getElementById('n-hinmoku').value.trim();
+  const suryo=parseInt(document.getElementById('n-suryo').value);
+  const shiire=parseInt(document.getElementById('n-shiire').value);
+  if(!hinmoku||isNaN(suryo)||isNaN(shiire)){alert('品目・数量・仕入れ値を入力してください');return;}
+  const key=dk(S.currentDate);
+  if(!S.nyuka[key])S.nyuka[key]=[];
+  S.nyuka[key].push({id:Date.now(),hinmoku,sanchi:document.getElementById('n-sanchi').value.trim(),toukyu:document.getElementById('n-toukyu').value,size:document.getElementById('n-size').value.trim(),tani:document.getElementById('n-tani').value,suryo,shiire,method:document.getElementById('n-method').value});
+  closeOverlay('nyuka-modal');renderAll();
+}
+function delNyuka(id){const key=dk(S.currentDate);S.nyuka[key]=(S.nyuka[key]||[]).filter(r=>r.id!==id);renderAll();}
+
+// ── hanbai ──
+function renderHanbai(){
+  const ha=getHb();
+  document.getElementById('hanbai-body').innerHTML=ha.length===0?`<tr><td colspan="11" class="empty">販売データがありません。</td></tr>`:ha.map(r=>{
+    const u=r.suryo*r.nebiki,g=r.suryo*r.shiire,a=u-g,rt=u?Math.round(a/u*100):0;
+    const rb=rt>=25?'b-green':rt>=15?'b-amber':'b-red';
+    const n=findNyukaById(r.nyukaId);const sz=n&&n.size?'/'+n.size:'';
+    return`<tr><td><b>${r.hinmoku}</b></td><td>${r.hanbaisaki}</td><td><span class="badge b-gray">${r.gyotai}</span></td><td><span class="badge b-blue">${r.toukyu}${sz}</span></td><td>${r.suryo}${r.tani}</td><td>¥${fmt(r.nebiki)}</td><td>¥${fmt(u)}</td><td>¥${fmt(g)}</td><td class="${a>=0?'p-pos':'p-neg'}">¥${fmt(a)}</td><td><span class="badge ${rb}">${rt}%</span></td><td><button class="action-btn" onclick="delHanbai(${r.id})">🗑</button></td></tr>`;
+  }).join('');
+}
+function openHanbaiModal(){
+  const list=getNy();
+  const sel=document.getElementById('h-nyuka');
+  sel.innerHTML=list.length===0?'<option>（入荷データなし）</option>':list.map(r=>`<option value="${r.id}">${r.hinmoku}（${r.toukyu}/${r.size||'-'}・残${getZk(r.id)}${r.tani}）</option>`).join('');
+  ['h-hanbaisaki','h-suryo','h-nebiki','h-uriage','h-arari'].forEach(id=>document.getElementById(id).value='');
+  const msel=document.getElementById('h-master');
+  msel.innerHTML='<option value="">-- 選択またはフリー入力 --</option>'+S.masters.map(m=>`<option value="${m.id}">${m.name}（${m.gyotai}）</option>`).join('');
+  onHNyukaChange();
+  document.getElementById('hanbai-modal').classList.add('show');
+}
+function onMasterSelect(){
+  const id=parseInt(document.getElementById('h-master').value);
+  const m=S.masters.find(x=>x.id===id);
+  if(m){document.getElementById('h-hanbaisaki').value=m.name;document.getElementById('h-gyotai').value=m.gyotai;}
+}
+function onHNyukaChange(){
+  const id=parseInt(document.getElementById('h-nyuka').value);
+  const n=getNy().find(r=>r.id===id);
+  document.getElementById('h-zaiko').value=n?`${getZk(id)}${n.tani}`:'-';
+  calcModalProfit();
+}
+function calcModalProfit(){
+  const id=parseInt(document.getElementById('h-nyuka').value);
+  const n=getNy().find(r=>r.id===id);
+  const suryo=parseFloat(document.getElementById('h-suryo').value)||0;
+  const nebiki=parseFloat(document.getElementById('h-nebiki').value)||0;
+  const u=suryo*nebiki,a=n?u-suryo*n.shiire:0;
+  document.getElementById('h-uriage').value=u?fmt(u)+'円':'';
+  document.getElementById('h-arari').value=(u&&n)?fmt(a)+'円':'';
+}
+function saveHanbai(){
+  const nyukaId=parseInt(document.getElementById('h-nyuka').value);
+  const n=getNy().find(r=>r.id===nyukaId);
+  if(!n){alert('入荷データを先に登録してください');return;}
+  const hanbaisaki=document.getElementById('h-hanbaisaki').value.trim();
+  const suryo=parseInt(document.getElementById('h-suryo').value);
+  const nebiki=parseInt(document.getElementById('h-nebiki').value);
+  if(!hanbaisaki||isNaN(suryo)||suryo<=0||isNaN(nebiki)||nebiki<=0){alert('販売先・数量・売値を入力してください');return;}
+  if(suryo>getZk(nyukaId)){alert(`在庫不足です（残：${getZk(nyukaId)}${n.tani}）`);return;}
+  const key=dk(S.currentDate);
+  if(!S.hanbai[key])S.hanbai[key]=[];
+  S.hanbai[key].push({id:Date.now(),nyukaId,hinmoku:n.hinmoku,toukyu:n.toukyu,sanchi:n.sanchi,hanbaisaki,gyotai:document.getElementById('h-gyotai').value,suryo,nebiki,tani:n.tani,shiire:n.shiire});
+  closeOverlay('hanbai-modal');renderAll();
+}
+function delHanbai(id){const key=dk(S.currentDate);S.hanbai[key]=(S.hanbai[key]||[]).filter(r=>r.id!==id);renderAll();}
+
+// ── zaiko ──
+function renderZaiko(){
+  const rows=getZaikoRows();
+  if(!rows.length){document.getElementById('zaiko-body').innerHTML=`<tr><td colspan="11" class="empty">入荷データがありません。</td></tr>`;document.getElementById('inline-sell-area').innerHTML='';return;}
+  document.getElementById('zaiko-body').innerHTML=rows.map(r=>{
+    const sold=getTotalSoldById(r.id);
+    const zaiko=r.suryo-sold;
+    const ratio=Math.round(zaiko/r.suryo*100);
+    const bc=zaiko===0?'b-gray':ratio<=20?'b-red':ratio<=50?'b-amber':'b-green';
+    const label=zaiko===0?'完売':ratio<=20?'残少':'在庫あり';
+    const isActive=S.activeSellRow===r.id;
+    const disabled=zaiko===0?'style="opacity:.4;pointer-events:none"':'';
+    const carryBadge=r._carryover?` <span class="badge" style="background:#FEF3D8;color:#5a3a00;font-size:10px">繰越</span>`:'';
+    return`<tr style="${r._carryover?'background:#fffdf5':''};"><td><b>${r.hinmoku}</b>${carryBadge}</td><td>${r.sanchi||'-'}</td><td><span class="badge b-blue">${r.toukyu}</span> ${r.size||'-'}</td><td>${r.tani}</td><td>${r.suryo}</td><td>${sold}</td><td style="font-weight:600;${zaiko===0?'color:var(--text3)':ratio<=20?'color:var(--amber)':''}">${zaiko}</td><td>¥${fmt(r.shiire)}</td><td>¥${fmt(zaiko*r.shiire)}</td><td><span class="badge ${bc}">${label}</span></td><td><button class="btn btn-sell${isActive?' open':''}" onclick="openInlineSell(${r.id})" ${disabled}>${isActive?'✕ 閉じる':'🛒 販売する'}</button></td></tr>`;
+  }).join('');
+  if(S.activeSellRow!==null){
+    const r=rows.find(x=>x.id===S.activeSellRow)||findNyukaById(S.activeSellRow);
+    if(!r){document.getElementById('inline-sell-area').innerHTML='';return;}
+    const zaiko=getZk(r.id);
+    const carryLabel=r._carryover?`<span class="badge" style="background:#FEF3D8;color:#5a3a00;margin-left:6px">前日繰越在庫</span>`:'';
+    document.getElementById('inline-sell-area').innerHTML=`
+      <div class="inline-form">
+        <div class="ftitle">🛒 ${r.hinmoku}（${r.toukyu}・${r.size||'-'}） 残 ${zaiko}${r.tani} を販売登録${carryLabel}</div>
+        <div class="inline-grid">
+          <div class="fg"><label>販売先</label>
+            <select id="is-master" onchange="onInlineMasterSelect()" style="margin-bottom:4px"><option value="">-- マスタから選択 --</option>${S.masters.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select>
+            <input type="text" id="is-hanbaisaki" placeholder="または直接入力">
+          </div>
+          <div class="fg"><label>業態</label><select id="is-gyotai"><option>スーパー</option><option>八百屋</option><option>飲食店</option><option>外食チェーン</option><option>業務用</option><option>その他</option></select></div>
+          <div class="fg"><label>数量（最大${zaiko}）</label><input type="number" id="is-suryo" min="1" max="${zaiko}" placeholder="${zaiko}" oninput="calcInlineProfit()"></div>
+          <div class="fg"><label>売値（円/${r.tani}）</label><input type="number" id="is-nebiki" min="0" placeholder="例：2200" oninput="calcInlineProfit()"></div>
+          <div class="fg"><label>&nbsp;</label><button class="btn btn-primary" onclick="saveInlineSell()">✓ 登録</button></div>
+        </div>
+        <div class="calc-row">
+          <span>売上：<span class="calc-val" id="is-uriage">-</span></span>
+          <span>粗利：<span class="calc-val" id="is-arari">-</span></span>
+          <span style="margin-left:auto;font-size:11px">仕入値 ¥${fmt(r.shiire)}/${r.tani}</span>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('inline-sell-area').innerHTML='';
+  }
+}
+function openInlineSell(id){S.activeSellRow=S.activeSellRow===id?null:id;renderZaiko();}
+function onInlineMasterSelect(){
+  const id=parseInt(document.getElementById('is-master').value);
+  const m=S.masters.find(x=>x.id===id);
+  if(m){document.getElementById('is-hanbaisaki').value=m.name;document.getElementById('is-gyotai').value=m.gyotai;}
+}
+function calcInlineProfit(){
+  const r=getZaikoRows().find(x=>x.id===S.activeSellRow)||findNyukaById(S.activeSellRow);if(!r)return;
+  const suryo=parseFloat(document.getElementById('is-suryo').value)||0;
+  const nebiki=parseFloat(document.getElementById('is-nebiki').value)||0;
+  const u=suryo*nebiki,a=u-suryo*r.shiire,rt=u?Math.round(a/u*100):0;
+  document.getElementById('is-uriage').textContent=u?'¥'+fmt(u):'-';
+  const el=document.getElementById('is-arari');
+  el.textContent=u?'¥'+fmt(a)+' ('+rt+'%)':'-';
+  el.style.color=a>=0?'var(--green)':'var(--red)';
+}
+function saveInlineSell(){
+  const nyukaId=S.activeSellRow;
+  const n=getZaikoRows().find(r=>r.id===nyukaId)||findNyukaById(nyukaId);
+  if(!n){alert('エラー：ロットが見つかりません');return;}
+  const hanbaisaki=document.getElementById('is-hanbaisaki').value.trim();
+  const gyotai=document.getElementById('is-gyotai').value;
+  const suryo=parseInt(document.getElementById('is-suryo').value);
+  const nebiki=parseInt(document.getElementById('is-nebiki').value);
+  if(!hanbaisaki||isNaN(suryo)||suryo<=0||isNaN(nebiki)||nebiki<=0){alert('販売先・数量・売値を入力してください');return;}
+  const zaiko=getZk(nyukaId);
+  if(suryo>zaiko){alert(`在庫不足（残：${zaiko}${n.tani}）`);return;}
+  const key=dk(S.currentDate);
+  if(!S.hanbai[key])S.hanbai[key]=[];
+  const isCarryover=!!(getNy().find(r=>r.id===nyukaId)===undefined);
+  S.hanbai[key].push({id:Date.now(),nyukaId,hinmoku:n.hinmoku,toukyu:n.toukyu,sanchi:n.sanchi,hanbaisaki,gyotai,suryo,nebiki,tani:n.tani,shiire:n.shiire,...(isCarryover?{carryover:true}:{})});
+  S.activeSellRow=null;renderAll();
+}
+
+// ── master ──
+function renderMaster(){
+  const ml=document.getElementById('master-list');
+  if(!S.masters.length){ml.innerHTML='<p style="color:var(--text3);font-size:12px">販売先が登録されていません。</p>';return;}
+  ml.innerHTML=S.masters.map(m=>`
+    <div class="master-card">
+      <div>
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-gyotai"><span class="badge b-gray">${m.gyotai}</span>${m.tanto?' 担当：'+m.tanto:''}</div>
+        ${m.tel?`<div class="mc-note">📞 ${m.tel}</div>`:''}
+        ${m.note?`<div class="mc-note" style="color:var(--text3)">📝 ${m.note}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="action-btn" onclick="editMaster(${m.id})" title="編集">✏️</button>
+        <button class="action-btn" onclick="delMaster(${m.id})" title="削除">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openMasterModal(){
+  ['m-name','m-tanto','m-tel','m-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-id').value='';
+  document.getElementById('m-gyotai').value='スーパー';
+  document.getElementById('master-modal').classList.add('show');
+}
+function editMaster(id){
+  const m=S.masters.find(x=>x.id===id);if(!m)return;
+  document.getElementById('m-id').value=m.id;
+  document.getElementById('m-name').value=m.name;
+  document.getElementById('m-gyotai').value=m.gyotai;
+  document.getElementById('m-tanto').value=m.tanto||'';
+  document.getElementById('m-tel').value=m.tel||'';
+  document.getElementById('m-note').value=m.note||'';
+  document.getElementById('master-modal').classList.add('show');
+}
+function saveMaster(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){alert('販売先名を入力してください');return;}
+  const existId=parseInt(document.getElementById('m-id').value);
+  const obj={id:existId||Date.now(),name,gyotai:document.getElementById('m-gyotai').value,tanto:document.getElementById('m-tanto').value.trim(),tel:document.getElementById('m-tel').value.trim(),note:document.getElementById('m-note').value.trim()};
+  if(existId){const idx=S.masters.findIndex(x=>x.id===existId);if(idx>=0)S.masters[idx]=obj;}
+  else{S.masters.push(obj);}
+  closeOverlay('master-modal');renderAll();
+}
+function delMaster(id){if(!confirm('削除しますか？'))return;S.masters=S.masters.filter(x=>x.id!==id);renderMaster();}
+
+// ── report ──
+function renderReport(){
+  document.getElementById('month-disp').textContent=`${S.reportMonth.getFullYear()}年${S.reportMonth.getMonth()+1}月`;
+  if(S.reportMode==='weekly')renderWeekly();
+  else renderMonthly();
+}
+
+function getDatesRange(startDate,days){
+  const dates=[];for(let i=0;i<days;i++){const d=new Date(startDate);d.setDate(d.getDate()-i);dates.push(dk(d));}
+  return dates;
+}
+
+function aggregateDates(dates){
+  return dates.map(d=>{
+    const ny=S.nyuka[d]||[];const ha=S.hanbai[d]||[];
+    const nyukaGaku=ny.reduce((s,r)=>s+r.suryo*r.shiire,0);
+    const uriage=ha.reduce((s,r)=>s+r.suryo*r.nebiki,0);
+    const genka=ha.reduce((s,r)=>s+r.suryo*r.shiire,0);
+    const arari=uriage-genka;
+    return{date:d,nyukaGaku,genka,uriage,arari,cnt:ha.length};
+  }).filter(r=>r.nyukaGaku>0||r.uriage>0);
+}
+
+function aggregateByCustomer(dates){
+  const map={};
+  dates.forEach(d=>{
+    (S.hanbai[d]||[]).forEach(r=>{
+      if(!map[r.hanbaisaki])map[r.hanbaisaki]={name:r.hanbaisaki,gyotai:r.gyotai,cnt:0,uriage:0,arari:0};
+      map[r.hanbaisaki].cnt++;
+      map[r.hanbaisaki].uriage+=r.suryo*r.nebiki;
+      map[r.hanbaisaki].arari+=r.suryo*(r.nebiki-r.shiire);
+    });
+  });
+  return Object.values(map).sort((a,b)=>b.uriage-a.uriage);
+}
+
+function renderWeekly(){
+  const dates=getDatesRange(S.currentDate,7);
+  const rows=aggregateDates(dates);
+  const tNy=rows.reduce((s,r)=>s+r.nyukaGaku,0),tU=rows.reduce((s,r)=>s+r.uriage,0),tG=rows.reduce((s,r)=>s+r.genka,0),tA=rows.reduce((s,r)=>s+r.arari,0),tC=rows.reduce((s,r)=>s+r.cnt,0);
+  const rA=tU?Math.round(tA/tU*100):0;
+  document.getElementById('weekly-cards').innerHTML=aggCards(tNy,tU,tG,tA,rA,tC,'7日間');
+  document.getElementById('weekly-body').innerHTML=rows.length===0?`<tr><td colspan="7" class="empty">データなし</td></tr>`:rows.map(r=>{const rt=r.uriage?Math.round(r.arari/r.uriage*100):0;return`<tr><td>${r.date}</td><td>¥${fmt(r.nyukaGaku)}</td><td>¥${fmt(r.uriage)}</td><td>¥${fmt(r.genka)}</td><td class="${r.arari>=0?'p-pos':'p-neg'}">¥${fmt(r.arari)}</td><td><span class="badge ${rt>=25?'b-green':rt>=15?'b-amber':'b-red'}">${rt}%</span></td><td>${r.cnt}件</td></tr>`;}).join('');
+  const customers=aggregateByCustomer(dates);
+  document.getElementById('weekly-customer-body').innerHTML=customers.length===0?`<tr><td colspan="6" class="empty">データなし</td></tr>`:customers.map(c=>{const rt=c.uriage?Math.round(c.arari/c.uriage*100):0;return`<tr><td><b>${c.name}</b></td><td><span class="badge b-gray">${c.gyotai}</span></td><td>${c.cnt}件</td><td>¥${fmt(c.uriage)}</td><td class="${c.arari>=0?'p-pos':'p-neg'}">¥${fmt(c.arari)}</td><td><span class="badge ${rt>=25?'b-green':rt>=15?'b-amber':'b-red'}">${rt}%</span></td></tr>`;}).join('');
+}
+
+function renderMonthly(){
+  const yr=S.reportMonth.getFullYear(),mo=S.reportMonth.getMonth();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const dates=[];for(let d=1;d<=daysInMonth;d++){dates.push(`${yr}-${p2(mo+1)}-${p2(d)}`);}
+  const rows=aggregateDates(dates);
+  const tNy=rows.reduce((s,r)=>s+r.nyukaGaku,0),tU=rows.reduce((s,r)=>s+r.uriage,0),tG=rows.reduce((s,r)=>s+r.genka,0),tA=rows.reduce((s,r)=>s+r.arari,0),tC=rows.reduce((s,r)=>s+r.cnt,0);
+  const rA=tU?Math.round(tA/tU*100):0;
+  document.getElementById('monthly-cards').innerHTML=aggCards(tNy,tU,tG,tA,rA,tC,`${mo+1}月`);
+  document.getElementById('monthly-body').innerHTML=rows.length===0?`<tr><td colspan="7" class="empty">データなし</td></tr>`:rows.map(r=>{const rt=r.uriage?Math.round(r.arari/r.uriage*100):0;return`<tr><td>${r.date}</td><td>¥${fmt(r.nyukaGaku)}</td><td>¥${fmt(r.uriage)}</td><td>¥${fmt(r.genka)}</td><td class="${r.arari>=0?'p-pos':'p-neg'}">¥${fmt(r.arari)}</td><td><span class="badge ${rt>=25?'b-green':rt>=15?'b-amber':'b-red'}">${rt}%</span></td><td>${r.cnt}件</td></tr>`;}).join('');
+  const customers=aggregateByCustomer(dates);
+  document.getElementById('monthly-customer-body').innerHTML=customers.length===0?`<tr><td colspan="6" class="empty">データなし</td></tr>`:customers.map(c=>{const rt=c.uriage?Math.round(c.arari/c.uriage*100):0;return`<tr><td><b>${c.name}</b></td><td><span class="badge b-gray">${c.gyotai}</span></td><td>${c.cnt}件</td><td>¥${fmt(c.uriage)}</td><td class="${c.arari>=0?'p-pos':'p-neg'}">¥${fmt(c.arari)}</td><td><span class="badge ${rt>=25?'b-green':rt>=15?'b-amber':'b-red'}">${rt}%</span></td></tr>`;}).join('');
+}
+
+function aggCards(tNy,tU,tG,tA,rA,tC,period){
+  return`
+    <div class="sum-card"><div class="lbl">入荷仕入総額（${period}）</div><div class="val">¥${fmt(tNy)}</div><div class="sub">入荷ロット全量ベース</div></div>
+    <div class="sum-card"><div class="lbl">売上合計（${period}）</div><div class="val">¥${fmt(tU)}</div><div class="sub">${tC}件</div></div>
+    <div class="sum-card"><div class="lbl">販売原価（${period}）</div><div class="val">¥${fmt(tG)}</div><div class="sub">販売分の仕入値合計</div></div>
+    <div class="sum-card"><div class="lbl">粗利合計（${period}）</div><div class="val ${tA>=0?'p-pos':'p-neg'}">¥${fmt(tA)}</div><div class="sub">粗利率 ${rA}%　売上−販売原価</div></div>`;
+}
+
+// ── CSV export ──
+function toCSV(headers,rows){
+  const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
+  return[headers.map(esc).join(','),...rows.map(r=>r.map(esc).join(','))].join('\r\n');
+}
+function dlCSV(csv,filename){
+  const bom='\uFEFF';
+  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+function exportHanbaiCSV(){
+  const ha=getHb();
+  if(!ha.length){alert('販売データがありません');return;}
+  const headers=['日付','品目','産地','等級','販売先','業態','数量','単位','売値/単位','売上','仕入原価','粗利','粗利率'];
+  const rows=ha.map(r=>{const u=r.suryo*r.nebiki,g=r.suryo*r.shiire,a=u-g,rt=u?Math.round(a/u*100):0;return[dk(S.currentDate),r.hinmoku,r.sanchi,r.toukyu,r.hanbaisaki,r.gyotai,r.suryo,r.tani,r.nebiki,u,g,a,rt+'%'];});
+  dlCSV(toCSV(headers,rows),`販売明細_${dk(S.currentDate)}.csv`);
+}
+function exportReportCSV(mode){
+  let dates=[],filename='';
+  if(mode==='weekly'){
+    dates=getDatesRange(S.currentDate,7);filename=`週次集計_${dk(S.currentDate)}.csv`;
+  } else {
+    const yr=S.reportMonth.getFullYear(),mo=S.reportMonth.getMonth();
+    const dim=new Date(yr,mo+1,0).getDate();
+    for(let d=1;d<=dim;d++)dates.push(`${yr}-${p2(mo+1)}-${p2(d)}`);
+    filename=`月次集計_${yr}${p2(mo+1)}.csv`;
+  }
+  const rows=aggregateDates(dates);
+  if(!rows.length){alert('データがありません');return;}
+  const headers=['日付','入荷仕入総額','売上合計','販売原価','粗利合計','粗利率','販売件数'];
+  const csvRows=rows.map(r=>{const rt=r.uriage?Math.round(r.arari/r.uriage*100):0;return[r.date,r.nyukaGaku,r.uriage,r.genka,r.arari,rt+'%',r.cnt];});
+  // 販売先別も追加
+  const customers=aggregateByCustomer(dates);
+  const cRows=customers.map(c=>{const rt=c.uriage?Math.round(c.arari/c.uriage*100):0;return[c.name,c.gyotai,c.cnt,c.uriage,c.arari,rt+'%'];});
+  const combined=toCSV(headers,csvRows)+'\r\n\r\n販売先別集計\r\n'+toCSV(['販売先','業態','件数','売上合計','粗利合計','粗利率'],cRows);
+  dlCSV(combined,filename);
+}
+
+// ── modal ──
+function closeOverlay(id){document.getElementById(id).classList.remove('show');}
+
+// ── init ──
+renderAll();
+</script>
+</body>
+</html>
