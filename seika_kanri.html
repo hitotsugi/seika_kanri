@@ -1186,19 +1186,7 @@ renderAll();
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as fbSignOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDKh-tNN0IkdXTOaOuIy1ubw8_yGtJ8C6I",
-  authDomain: "seika-kanri.firebaseapp.com",
-  projectId: "seika-kanri",
-  storageBucket: "seika-kanri.firebasestorage.app",
-  messagingSenderId: "1087498976450",
-  appId: "1:1087498976450:web:6e2964de9a4eed91fa0f5b"
-};
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as fbSignOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as fbSignOut, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDKh-tNN0IkdXTOaOuIy1ubw8_yGtJ8C6I",
@@ -1213,7 +1201,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// iOS SafariのITP対策：localPersistenceを明示的に設定
+// iOS SafariのITP対策
 setPersistence(auth, browserLocalPersistence).catch(e=>console.warn('persistence:', e));
 
 // WebView判定
@@ -1225,12 +1213,10 @@ function isWebView(){
 window.signInWithGoogle = async function(){
   const errEl = document.getElementById('login-err');
   errEl.textContent = '';
-
   if(isWebView()){
     errEl.textContent = '※ このブラウザでは直接ログインできません。SafariやChromeで開いてください。';
     return;
   }
-
   try{
     await signInWithPopup(auth, provider);
   } catch(e){
