@@ -1197,11 +1197,26 @@ const firebaseConfig = {
   appId: "1:1087498976450:web:6e2964de9a4eed91fa0f5b"
 };
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as fbSignOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDKh-tNN0IkdXTOaOuIy1ubw8_yGtJ8C6I",
+  authDomain: "seika-kanri.firebaseapp.com",
+  projectId: "seika-kanri",
+  storageBucket: "seika-kanri.firebasestorage.app",
+  messagingSenderId: "1087498976450",
+  appId: "1:1087498976450:web:6e2964de9a4eed91fa0f5b"
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// WebView判定（LINEブラウザ・Facebookブラウザ等）
+// iOS SafariのITP対策：localPersistenceを明示的に設定
+setPersistence(auth, browserLocalPersistence).catch(e=>console.warn('persistence:', e));
+
+// WebView判定
 function isWebView(){
   const ua = navigator.userAgent;
   return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|MicroMessenger/.test(ua);
@@ -1211,7 +1226,6 @@ window.signInWithGoogle = async function(){
   const errEl = document.getElementById('login-err');
   errEl.textContent = '';
 
-  // WebView内の場合は外部ブラウザで開くよう誘導
   if(isWebView()){
     errEl.textContent = '※ このブラウザでは直接ログインできません。SafariやChromeで開いてください。';
     return;
@@ -1222,7 +1236,9 @@ window.signInWithGoogle = async function(){
   } catch(e){
     console.error(e);
     if(e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user'){
-      errEl.textContent = 'ポップアップがブロックされました。ブラウザのポップアップ許可設定を確認してください。';
+      errEl.textContent = 'ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。';
+    } else if(e.code === 'auth/cancelled-popup-request'){
+      // 無視
     } else {
       errEl.textContent = 'ログインに失敗しました（'+e.code+'）。もう一度お試しください。';
     }
@@ -1232,11 +1248,6 @@ window.signInWithGoogle = async function(){
 window.signOut = async function(){
   await fbSignOut(auth);
 };
-
-// リダイレクト後の処理（Safari対応）
-getRedirectResult(auth).then(result=>{
-  if(result && result.user) console.log('リダイレクトログイン成功');
-}).catch(e=>console.error('redirect error', e));
 
 onAuthStateChanged(auth, user => {
   if(user){
